@@ -4,14 +4,17 @@ require 'connection.php';
 
 if (!empty($_GET['username']) && !empty($_GET['password'])) {
   try {
-    $loginStatement = $link->prepare('SELECT * FROM users WHERE username = :username AND password = :password');
+    $loginStatement = $link->prepare('SELECT * FROM users WHERE username = :username');
     $loginStatement->bindParam(':username', $_GET['username']);
-    $loginStatement->bindParam(':password', $_GET['password']);
     $loginStatement->execute();
     if ($user = $loginStatement->fetchObject()) {
-      $_SESSION['username'] = $user->username;
-      $_SESSION['level'] = $user->level;
-      header('Location: index.php');
+      if (password_verify($_GET['password'], $user->password)) {
+        $_SESSION['username'] = $user->username;
+        $_SESSION['level'] = $user->level;
+        header('Location: index.php');
+      } else {
+        header('Location: login.php');
+      }
     } else {
       header('Location: login.php');
     }
